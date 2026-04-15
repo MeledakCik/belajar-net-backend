@@ -69,6 +69,12 @@ app.post('/login', async (req, res) => {
     });
 });
 
+app.get('/api/user-count', async (req, res) => {
+  const count = await db.user.count(); 
+  const online = await db.user.count({ where: { last_seen: { [Op.gt]: fiveMinutesAgo } } });
+  
+  res.json({ count: count, online: online, growth: 12 });
+});
 if (process.env.NODE_ENV !== 'production') {
     app.listen(5000, () => console.log("Lokal server jalan..."));
 }
