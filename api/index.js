@@ -88,25 +88,34 @@ app.post('/login', async (req, res) => {
         });
     });
 });
+
 app.get('/api/users', (req, res) => {
-    const sql = "SELECT id, full_name, username, email, created_at FROM users ORDER BY id DESC";
+    const sql = `
+        SELECT id, full_name, username, email, created_at, 
+        TIMESTAMPDIFF(SECOND, last_seen, NOW()) as seconds_ago 
+        FROM users ORDER BY id DESC`;
+
     db.query(sql, (err, results) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ error: "Gagal mengambil data user" });
-        }
-        
-        const enhancedResults = results.map((user, index) => {
+        if (err) return res.status(500).json({ error: "Gagal" });
+
+        const enhancedResults = results.map((user) => {
             return {
-                id: user.id,
-                full_name: user.full_name,
-                username: user.username,
-                email: user.email,
-                created_at: user.created_at, 
-                status: index % 2 === 0 ? 'online' : 'offline' 
+                ...user,
+                status: user.seconds_ago <= 60 ? 'online' : 'offline'
             };
         });
         res.json(enhancedResults);
+    });
+});
+
+app.post('/api/heartbeat', (req, res) => {
+    const { username } = req.body;
+    if (!username) return res.status(400).send();
+
+    const sql = "UPDATE users SET last_seen = NOW() WHERE username = ?";
+    db.query(sql, [username], (err) => {
+        if (err) return res.status(500).send();
+        res.status(200).send();
     });
 });
 
