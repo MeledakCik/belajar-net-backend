@@ -88,7 +88,6 @@ app.post('/login', async (req, res) => {
         });
     });
 });
-
 app.get('/api/users', (req, res) => {
     const sql = "SELECT id, full_name, username, email, created_at FROM users ORDER BY id DESC";
     db.query(sql, (err, results) => {
@@ -96,6 +95,7 @@ app.get('/api/users', (req, res) => {
             console.error(err);
             return res.status(500).json({ error: "Gagal mengambil data user" });
         }
+        
         const enhancedResults = results.map((user, index) => {
             return {
                 id: user.id,
