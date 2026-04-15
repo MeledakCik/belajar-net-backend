@@ -96,17 +96,16 @@ app.get('/api/users', (req, res) => {
             console.error(err);
             return res.status(500).json({ error: "Gagal mengambil data user" });
         }
-        const enhancedResults = results.map(user => {
+        const enhancedResults = results.map((user, index) => {
             return {
                 id: user.id,
                 full_name: user.full_name,
                 username: user.username,
                 email: user.email,
                 created_at: user.created_at, 
-                status: user.id % 2 === 0 ? 'online' : 'offline' 
+                status: index % 2 === 0 ? 'online' : 'offline' 
             };
         });
-        
         res.json(enhancedResults);
     });
 });
