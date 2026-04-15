@@ -102,6 +102,7 @@ app.get('/api/users', (req, res) => {
                 full_name: user.full_name,
                 username: user.username,
                 email: user.email,
+                created_at: user.created_at, 
                 status: user.id % 2 === 0 ? 'online' : 'offline' 
             };
         });
