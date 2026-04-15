@@ -73,7 +73,6 @@ app.post('/register', async (req, res) => {
 app.post('/login', async (req, res) => {
     const { username, password } = req.body;
     const sql = "SELECT * FROM users WHERE username = ?";
-    
     db.query(sql, [username], async (err, results) => {
         if (err) return res.status(500).json({ error: "Server error" });
         if (results.length === 0) return res.status(404).json({ error: "User tidak ditemukan" });
@@ -90,6 +89,46 @@ app.post('/login', async (req, res) => {
     });
 });
 
+app.get('/api/users', (req, res) => {
+    const sql = "SELECT id, full_name, username, email, created_at FROM users ORDER BY id DESC";
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: "Gagal mengambil data user" });
+        }
+        const enhancedResults = results.map(user => {
+            return {
+                id: user.id,
+                full_name: user.full_name,
+                username: user.username,
+                email: user.email,
+                status: user.id % 2 === 0 ? 'online' : 'offline' 
+            };
+        });
+        
+        res.json(enhancedResults);
+    });
+});
+
+app.delete('/api/users/:id', (req, res) => {
+    const { id } = req.params;
+    const sql = "DELETE FROM users WHERE id = ?";
+    db.query(sql, [id], (err, result) => {
+        if (err) return res.status(500).json({ error: "Gagal menghapus user" });
+        res.json({ message: "User berhasil dihapus!" });
+    });
+});
+
+app.put('/api/users/:id', (req, res) => {
+    const { id } = req.params;
+    const { full_name, email, username } = req.body;
+    const sql = "UPDATE users SET full_name = ?, email = ?, username = ? WHERE id = ?";
+    
+    db.query(sql, [full_name, email, username, id], (err, result) => {
+        if (err) return res.status(500).json({ error: "Gagal update database" });
+        res.json({ message: "Data berhasil diperbarui!" });
+    });
+});
 const PORT = process.env.PORT || 5000;
 if (process.env.NODE_ENV !== 'production') {
     app.listen(PORT, () => console.log(`🚀 Server jalan di port ${PORT}`));
