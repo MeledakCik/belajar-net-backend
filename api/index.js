@@ -8,7 +8,7 @@ const app = express();
 
 app.use(cors({
     origin: '*',
-    methods: ['GET', 'POST'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Ditambahkan PUT & DELETE agar lengkap
     allowedHeaders: ['Content-Type']
 }));
 app.use(express.json());
@@ -25,7 +25,23 @@ const db = mysql.createConnection({
     }
 });
 
-
+app.post('/api/users/save-path', (req, res) => {
+    const { displayId, nama_jalur } = req.body;
+    if (!displayId) {
+        return res.status(400).json({ error: "Display ID tidak ditemukan" });
+    }
+    const sql = "UPDATE users SET progress = ? WHERE username = ? OR id = ?";
+    db.query(sql, [nama_jalur, displayId, displayId], (err, result) => {
+        if (err) {
+            console.error("Database Error saat simpan jalur:", err);
+            return res.status(500).json({ error: "Gagal menyimpan jalur ke kolom progress" });
+        }
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: "User tidak ditemukan" });
+        }
+        res.status(200).json({ message: "Jalur petualangan berhasil disimpan ke progress!" });
+    });
+});
 app.get('/api/user-count', (req, res) => {
     const sqlCount = "SELECT COUNT(*) as total FROM users";
     
@@ -138,6 +154,7 @@ app.put('/api/users/:id', (req, res) => {
         res.json({ message: "Data berhasil diperbarui!" });
     });
 });
+
 const PORT = process.env.PORT || 5000;
 if (process.env.NODE_ENV !== 'production') {
     app.listen(PORT, () => console.log(`🚀 Server jalan di port ${PORT}`));
