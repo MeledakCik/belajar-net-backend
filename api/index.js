@@ -27,20 +27,27 @@ const db = mysql.createConnection({
 
 app.post('/api/users/save-path', (req, res) => {
     const { displayId, nama_jalur } = req.body;
-
     if (!displayId) {
         return res.status(400).json({ error: "Display ID tidak ditemukan" });
     }
-    const sql = "UPDATE users SET jalur_belajar = ? WHERE username = ? OR id = ?";
-    db.query(sql, [nama_jalur, displayId, displayId], (err, result) => {
-        if (err) {
-            console.error("Database Error:", err);
-            return res.status(500).json({ error: "Gagal menyimpan jalur" });
-        }
-        res.status(200).json({ message: "Jalur berhasil disimpan!" });
-    });
+    try {
+        const decodedUsername = Buffer.from(displayId, 'base64').toString('utf-8');
+        const sql = "UPDATE users SET jalur_belajar = ? WHERE username = ?";
+        db.query(sql, [nama_jalur, decodedUsername], (err, result) => {
+            if (err) {
+                console.error("Database Error:", err);
+                return res.status(500).json({ error: "Gagal menyimpan jalur" });
+            }
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ error: "User tidak ditemukan" });
+            }
+            res.status(200).json({ message: "Jalur berhasil disimpan!" });
+        });
+    } catch (decodeError) {
+        console.error("Base64 Decode Error:", decodeError);
+        return res.status(400).json({ error: "Format Display ID tidak valid" });
+    }
 });
-
 app.get('/api/user-count', (req, res) => {
     const sqlCount = "SELECT COUNT(*) as total FROM users";
     
