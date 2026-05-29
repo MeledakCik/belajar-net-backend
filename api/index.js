@@ -8,7 +8,7 @@ const app = express();
 
 app.use(cors({
     origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Ditambahkan PUT & DELETE agar lengkap
+    methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type']
 }));
 app.use(express.json());
@@ -24,7 +24,6 @@ const db = mysql.createConnection({
         rejectUnauthorized: true 
     }
 });
-
 app.post('/api/users/save-path', (req, res) => {
     const { displayId, nama_jalur } = req.body;
     if (!displayId) {
@@ -48,6 +47,7 @@ app.post('/api/users/save-path', (req, res) => {
         return res.status(400).json({ error: "Format Display ID tidak valid" });
     }
 });
+
 app.get('/api/user-count', (req, res) => {
     const sqlCount = "SELECT COUNT(*) as total FROM users";
     
@@ -160,7 +160,6 @@ app.put('/api/users/:id', (req, res) => {
         res.json({ message: "Data berhasil diperbarui!" });
     });
 });
-
 const PORT = process.env.PORT || 5000;
 if (process.env.NODE_ENV !== 'production') {
     app.listen(PORT, () => console.log(`🚀 Server jalan di port ${PORT}`));
